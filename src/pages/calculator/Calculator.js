@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import cx from 'classnames';
+// import cx from 'classnames';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
@@ -15,13 +15,18 @@ import {
   DropdownMenu,
   DropdownToggle,
   DropdownItem,
-  Table
+  Table,
+  Input, InputGroup, InputGroupAddon, InputGroupText,
+  Toast, ToastBody, ToastHeader
 } from 'reactstrap';
 
 import Widget from '../../components/Widget/Widget';
 
 import { fetchPosts } from '../../actions/posts';
 import s from './Calculator.module.scss';
+
+const math = require('mathjs');
+
 
 class Calculator extends Component {
   /* eslint-disable */
@@ -38,7 +43,10 @@ class Calculator extends Component {
   };
 
   state = {
-    isDropdownOpened: false
+    isDropdownOpened: false,
+    expr: '',
+    result: '0',
+    last_expr: 'Result'
   };
 
   componentDidMount() {
@@ -57,6 +65,28 @@ class Calculator extends Component {
     }));
   }
 
+  updateExpr = (event) => {
+    this.setState({expr: event.target.value});
+  };
+
+  evalExpr = (event) => {
+    let node = null;
+    let result = '';
+
+    try {
+      // parse the expression
+      node = math.parse(this.state.expr);
+
+      // evaluate the result of the expression
+      result = math.format(node.compile().evaluate());
+    }
+    catch (err) {
+      result = '<span style="color: red;">' + err.toString() + '</span>'
+    }
+    this.setState({result: result});
+    this.setState({last_expr: this.state.expr});
+  };
+
   render() {
     return (
       <div className={s.root}>
@@ -67,161 +97,42 @@ class Calculator extends Component {
         <h1 className="mb-lg">Calculator</h1>
         <Row>
           <Col sm={12} md={6}>
-            <Widget
-              title={
-                <div>
-                  <div className="pull-right mt-n-xs">
-                    <input
-                      type="search"
-                      placeholder="Search..."
-                      className="form-control input-sm"
-                    />
-                  </div>
-                  <h5 className="mt-0 mb-3">
-                    <i className="fa fa-user mr-xs opacity-70" />{' '}
-                    Users
-                  </h5>
-                </div>
-              }
-            >
-              <Table responsive borderless className={cx('mb-0', s.usersTable)}>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td>Alice</td>
-                    <td>alice@email.com</td>
-                    <td>
-                      <span className="py-0 px-1 bg-success rounded text-white">active</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td>Bob</td>
-                    <td>bob@email.com</td>
-                    <td>
-                      <span className="py-0 px-1 bg-warning rounded text-white">delayed</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>3</td>
-                    <td>Duck</td>
-                    <td>duck@email.com</td>
-                    <td>
-                      <span className="py-0 px-1 bg-success rounded text-white">active</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>4</td>
-                    <td>Shepherd</td>
-                    <td>shepherd@email.com</td>
-                    <td>
-                      <span className="py-0 px-1 bg-danger rounded text-white">removed</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </Table>
+            <Widget title="Results Stack">
+              <Alert color="primary">
+              <p className="lead text-right">Results</p>
+              </Alert>
             </Widget>
           </Col>
           <Col sm={12} md={6}>
-            <Widget title="Alerts">
-              <Alert
-                className="alert-sm"
-                color="warning"
-              >
-                <span className="fw-semi-bold">Warning:</span> Best check yo
-                self, you&#39;re not looking too good.
-              </Alert>
-              <Alert
-                className="alert-sm"
-                color="success"
-              >
-                <span className="fw-semi-bold">Success:</span> You successfully
-                read this important alert message.
-              </Alert>
-              <Alert
-                className="alert-sm"
-                color="info"
-              >
-                <span className="fw-semi-bold">Info:</span> This alert needs
-                your attention, but it&#39;s not super important.
-              </Alert>
-              <Alert
-                className="alert-sm clearfix"
-                color="danger"
-              >
-                <span className="fw-semi-bold">Danger:</span> Change this and
-                that and try again.
-                <span className="pull-right mr-sm">
-                  <Button color="danger" size="sm">
-                    Take this action
-                  </Button>
-                  <span className="px-2"> or </span>
-                  <Button color="default" size="sm">Cancel</Button>
-                </span>
-              </Alert>
+            <Widget title="Evaluate Expression">
+              <Toast>
+                <ToastHeader icon="primary">
+                  {this.state.expr ? this.state.expr : "Result"}
+                </ToastHeader>
+                <ToastBody className="text-right">
+                <p className="lead">{this.state.result}</p>
+                </ToastBody>
+              </Toast>
+              <InputGroup>
+                <Input 
+                  type="text"
+                  name="expr"
+                  id="expr"
+                  value={this.state.expr}
+                  onChange={this.updateExpr}
+                  placeholder="Enter expression to evaluate"
+                />
+                <InputGroupAddon addonType="append">
+                  <InputGroupText>
+                    <Input addon type="checkbox" aria-label="checkfor for" />
+                    <small>&nbsp; add to Results Stack</small>
+                    </InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
+              <Button color="primary" onClick={this.evalExpr}>Evaluate</Button>
             </Widget>
           </Col>
         </Row>
-        <Widget className="mt-lg" title="Some standard reactstrap components">
-          <Row>
-            <Col sm={6}>
-              <div className="mt">
-                <Button size="sm" color="default" className="mr-sm mb-xs">
-                  Default
-                </Button>
-                <Button size="sm" color="success" className="mr-sm mb-xs">
-                  Success
-                </Button>
-                <Button size="sm" color="info" className="mr-sm mb-xs">
-                  Info
-                </Button>
-                <Button size="sm" color="warning" className="mr-sm mb-xs">
-                  Warning
-                </Button>
-                <Button size="sm" color="danger" className="mb-xs">
-                  Danger
-                </Button>
-              </div>
-              <ButtonGroup className="mb">
-                <Button color="default">1</Button>
-                <Button color="default">2</Button>
-                <ButtonDropdown isOpen={this.state.isDropdownOpened} toggle={this.toggleDropdown}>
-                  <DropdownToggle color="default" caret>
-                    Dropdown
-                  </DropdownToggle>
-                  <DropdownMenu>
-                    <DropdownItem>1</DropdownItem>
-                    <DropdownItem>2</DropdownItem>
-                  </DropdownMenu>
-                </ButtonDropdown>
-              </ButtonGroup>
-              <p className="mb-0">
-                For more components please checkout{' '}
-                <a
-                  href="https://reactstrap.github.io/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  reactstrap documentation
-                </a>
-              </p>
-            </Col>
-            <Col sm={6}>
-              <Progress className="progress-sm" color="success" value={40} />
-              <Progress className="progress-sm" color="info" value={20} />
-              <Progress className="progress-sm" color="warning" value={60} />
-              <Progress className="progress-sm" color="danger" value={80} />
-            </Col>
-          </Row>
-        </Widget>
       </div>
     );
   }
