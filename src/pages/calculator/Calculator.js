@@ -20,13 +20,14 @@ import {
   Toast, ToastBody, ToastHeader
 } from 'reactstrap';
 
+import MathJax from 'react-mathjax-preview'
+
 import Widget from '../../components/Widget/Widget';
 
 import { fetchPosts } from '../../actions/posts';
 import s from './Calculator.module.scss';
 
 const math = require('mathjs');
-
 
 class Calculator extends Component {
   /* eslint-disable */
@@ -45,8 +46,9 @@ class Calculator extends Component {
   state = {
     isDropdownOpened: false,
     expr: '',
-    result: '0',
-    last_expr: 'Result'
+    result: '',
+    last_expr: 'Result',
+    result_pretty: ''
   };
 
   componentDidMount() {
@@ -70,20 +72,33 @@ class Calculator extends Component {
   };
 
   evalExpr = (event) => {
-    let node = null;
+    let curr_expr = null;
     let result = '';
+    let result_tex = '';
 
     try {
       // parse the expression
-      node = math.parse(this.state.expr);
+      curr_expr = math.parse(this.state.expr);
 
       // evaluate the result of the expression
-      result = math.format(node.compile().evaluate());
+      result = math.format(curr_expr.compile().evaluate());
     }
     catch (err) {
-      result = '<span style="color: red;">' + err.toString() + '</span>'
+      this.setState({result: err.toString()});
+      this.setState({last_expr: this.state.expr});
+      return;
     }
+
+    try {
+      // export the expression to LaTeX
+      result_tex = curr_expr.toTex({parenthesis: 'auto', implicit: 'hide'})
+    }
+    catch (err) {
+      result_tex = '';
+    }
+
     this.setState({result: result});
+    this.setState({result_pretty: result_tex});
     this.setState({last_expr: this.state.expr});
   };
 
@@ -110,7 +125,7 @@ class Calculator extends Component {
                   {this.state.expr ? this.state.expr : "Result"}
                 </ToastHeader>
                 <ToastBody className="text-right">
-                <p className="lead">{this.state.result}</p>
+                <p className="lead"><MathJax math={'$' + this.state.result_pretty + '$'}/></p>
                 </ToastBody>
               </Toast>
               <InputGroup>
@@ -125,7 +140,7 @@ class Calculator extends Component {
                 <InputGroupAddon addonType="append">
                   <InputGroupText>
                     <Input addon type="checkbox" aria-label="checkfor for" />
-                    <small>&nbsp; add to Results Stack</small>
+                    <small>&nbsp; add to Stack</small>
                     </InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
