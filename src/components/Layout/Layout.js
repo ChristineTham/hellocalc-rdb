@@ -18,6 +18,7 @@ import Sidebar from '../Sidebar';
 
 // Dashboard component is loaded directly as an example of server side rendering
 import Dashboard from '../../pages/dashboard'
+import Calculator from '../../pages/calculator/Calculator'
 import Buttons from '../../pages/buttons'
 import Charts from '../../pages/charts'
 import Maps from '../../pages/google'
@@ -56,7 +57,7 @@ class Layout extends React.Component {
           <main className={s.content}>
             <Switch>
               <Route path="/app/main" exact component={Dashboard} />
-              <Route path="/app/typography" exact component={Typography} />
+              <Route path="/app/calculator" exact component={Calculator} />              <Route path="/app/typography" exact component={Typography} />
               <Route path="/app/tables" exact component={Tables} />
               <Route path="/app/posts" component={Posts} />
               <Route path="/app/privacy" exact component={Privacy} />
