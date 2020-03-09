@@ -26,6 +26,11 @@ const Sidebar = () => (
         glyph="calculator"
       />
       <LinksGroup
+        header="Editor"
+        headerLink="/app/editor"
+        glyph="editor"
+      />
+      <LinksGroup
         header="Typography"
         headerLink="/app/typography"
         glyph="typography"
